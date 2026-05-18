@@ -41,12 +41,17 @@ export async function POST(request: Request) {
     // Optional Customer Data
     const firstName = rowData['First Name'] ? String(rowData['First Name']).trim() : '';
     const lastName = rowData['Last Name'] ? String(rowData['Last Name']).trim() : '';
+    
+    // Marketing Consent (reads from 'Subscribed' or 'Accepts Marketing' column)
+    const rawSubscribed = rowData['Subscribed'] || rowData['Accepts Marketing'] || '';
+    const isSubscribed = ['yes', 'true', '1'].includes(String(rawSubscribed).trim().toLowerCase());
 
-    if (firstName || lastName) {
+    if (orderData.email) {
       orderData.customer = {
         first_name: firstName,
         last_name: lastName,
-        email: orderData.email
+        email: orderData.email,
+        accepts_marketing: isSubscribed
       };
     }
 

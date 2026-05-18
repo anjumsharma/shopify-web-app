@@ -13,6 +13,7 @@ interface LogEntry {
 export default function Home() {
   // --- LOGIN STATE ---
   const [isAuthenticated, setIsAuthenticated] = useState(false);
+  const [activeUser, setActiveUser] = useState<any>(null);
   const [loginUser, setLoginUser] = useState('');
   const [loginPass, setLoginPass] = useState('');
   const [loginError, setLoginError] = useState('');
@@ -184,6 +185,7 @@ export default function Home() {
 
     // If we made it here, they are valid and not expired!
     setIsAuthenticated(true);
+    setActiveUser(user);
     setLoginError('');
   };
 
@@ -242,6 +244,7 @@ export default function Home() {
 
   const handleLogout = () => {
     setIsAuthenticated(false);
+    setActiveUser(null);
     setLoginUser('');
     setLoginPass('');
     setDomain('');
@@ -266,13 +269,21 @@ export default function Home() {
           </div>
         </div>
         
-        <button 
-          onClick={handleLogout}
-          className="flex items-center px-4 py-2 bg-surface/50 hover:bg-surface border border-border rounded-lg text-textMuted hover:text-white transition-colors"
-        >
-          <LogOut className="w-4 h-4 mr-2" />
-          Logout
-        </button>
+        <div className="flex items-center space-x-4">
+          {activeUser && (
+            <div className="hidden md:block text-right mr-2">
+              <p className="text-sm font-medium text-white">User: {activeUser.username}</p>
+              <p className="text-xs text-textMuted">Expires: {activeUser.expiry}</p>
+            </div>
+          )}
+          <button 
+            onClick={handleLogout}
+            className="flex items-center px-4 py-2 bg-surface/50 hover:bg-surface border border-border rounded-lg text-textMuted hover:text-white transition-colors"
+          >
+            <LogOut className="w-4 h-4 mr-2" />
+            Logout
+          </button>
+        </div>
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-12 gap-8">
@@ -286,6 +297,9 @@ export default function Home() {
             </h2>
             
             <div className="space-y-4">
+              <div className="p-3 rounded-lg bg-primary/10 border border-primary/20 text-xs text-primary">
+                <strong>Required Scopes:</strong> write_orders, write_draft_orders, write_customers
+              </div>
               <div>
                 <label className="block text-sm font-medium text-textMuted mb-1">Store Domain</label>
                 <input 

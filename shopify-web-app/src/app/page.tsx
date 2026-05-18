@@ -2,7 +2,7 @@
 
 import React, { useState, useRef, useEffect } from 'react';
 import Papa from 'papaparse';
-import { UploadCloud, CheckCircle2, AlertCircle, Play, Square, Settings2, FileSpreadsheet } from 'lucide-react';
+import { UploadCloud, CheckCircle2, AlertCircle, Play, Square, Settings2, FileSpreadsheet, Lock } from 'lucide-react';
 
 interface LogEntry {
   row: number;
@@ -11,6 +11,13 @@ interface LogEntry {
 }
 
 export default function Home() {
+  // --- LOGIN STATE ---
+  const [isAuthenticated, setIsAuthenticated] = useState(false);
+  const [loginUser, setLoginUser] = useState('');
+  const [loginPass, setLoginPass] = useState('');
+  const [loginError, setLoginError] = useState('');
+
+  // --- DASHBOARD STATE ---
   const [domain, setDomain] = useState('');
   const [token, setToken] = useState('');
   const [delay, setDelay] = useState('0.6');
@@ -113,6 +120,83 @@ export default function Home() {
     setIsProcessing(false);
     addLog('Finished processing.', 'info');
   };
+
+  const handleLogin = (e: React.FormEvent) => {
+    e.preventDefault();
+    
+    // --- CONFIGURE YOUR LOGIN HERE ---
+    const VALID_USER = "admin";
+    const VALID_PASS = "shopify123";
+    const EXPIRY_DATE = "2026-12-31"; // YYYY-MM-DD format
+    
+    // Check expiry
+    const today = new Date().toISOString().split('T')[0];
+    if (today > EXPIRY_DATE) {
+      setLoginError("This account has expired. Please contact support.");
+      return;
+    }
+
+    // Check credentials
+    if (loginUser === VALID_USER && loginPass === VALID_PASS) {
+      setIsAuthenticated(true);
+      setLoginError('');
+    } else {
+      setLoginError("Invalid username or password");
+    }
+  };
+
+  if (!isAuthenticated) {
+    return (
+      <main className="min-h-screen flex items-center justify-center p-6">
+        <div className="glass-panel p-8 rounded-2xl max-w-md w-full space-y-6 relative overflow-hidden">
+          {/* Decorative background glow */}
+          <div className="absolute top-0 left-1/2 -translate-x-1/2 w-full h-32 bg-primary/20 blur-[60px] pointer-events-none" />
+          
+          <div className="text-center relative z-10">
+            <div className="mx-auto w-12 h-12 bg-primary/20 rounded-full flex items-center justify-center mb-4">
+              <Lock className="w-6 h-6 text-primary" />
+            </div>
+            <h1 className="text-2xl font-bold text-white mb-2">Secure Access</h1>
+            <p className="text-textMuted">Please log in to use the Bulk Invoicer</p>
+          </div>
+          
+          <form onSubmit={handleLogin} className="space-y-4 relative z-10">
+            <div>
+              <label className="block text-sm font-medium text-textMuted mb-1">Username</label>
+              <input 
+                type="text" 
+                required
+                className="w-full px-4 py-3 rounded-xl input-premium"
+                value={loginUser}
+                onChange={(e) => setLoginUser(e.target.value)}
+              />
+            </div>
+            <div>
+              <label className="block text-sm font-medium text-textMuted mb-1">Password</label>
+              <input 
+                type="password" 
+                required
+                className="w-full px-4 py-3 rounded-xl input-premium"
+                value={loginPass}
+                onChange={(e) => setLoginPass(e.target.value)}
+              />
+            </div>
+            
+            {loginError && (
+              <div className="p-3 rounded-lg bg-red-500/10 border border-red-500/20 text-red-400 text-sm text-center flex items-center justify-center">
+                <AlertCircle className="w-4 h-4 mr-2" />
+                {loginError}
+              </div>
+            )}
+            
+            <button type="submit" className="w-full btn-primary py-3 px-4 rounded-xl font-bold mt-2 hover:scale-[1.02] transition-transform">
+              Unlock Dashboard
+            </button>
+          </form>
+        </div>
+      </main>
+    );
+  }
 
   return (
     <main className="max-w-5xl mx-auto p-6 md:p-12 space-y-8">

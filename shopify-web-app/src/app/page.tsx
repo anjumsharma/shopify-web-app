@@ -124,25 +124,34 @@ export default function Home() {
   const handleLogin = (e: React.FormEvent) => {
     e.preventDefault();
     
-    // --- CONFIGURE YOUR LOGIN HERE ---
-    const VALID_USER = "admin";
-    const VALID_PASS = "shopify123";
-    const EXPIRY_DATE = "2026-12-31"; // YYYY-MM-DD format
+    // --- CONFIGURE YOUR USERS HERE ---
+    // You can add as many users as you want by adding new blocks to this list
+    const ALLOWED_USERS = [
+      { username: "admin", password: "shopify123", expiry: "2026-12-31" },
+      { username: "team1", password: "password1", expiry: "2024-12-31" },
+      { username: "temp", password: "123", expiry: "2024-06-01" }
+    ];
     
-    // Check expiry
-    const today = new Date().toISOString().split('T')[0];
-    if (today > EXPIRY_DATE) {
-      setLoginError("This account has expired. Please contact support.");
+    // Find if the entered username and password match any user in our list
+    const user = ALLOWED_USERS.find(
+      u => u.username === loginUser && u.password === loginPass
+    );
+
+    if (!user) {
+      setLoginError("Invalid username or password");
       return;
     }
 
-    // Check credentials
-    if (loginUser === VALID_USER && loginPass === VALID_PASS) {
-      setIsAuthenticated(true);
-      setLoginError('');
-    } else {
-      setLoginError("Invalid username or password");
+    // Check expiry for the matched user
+    const today = new Date().toISOString().split('T')[0];
+    if (today > user.expiry) {
+      setLoginError(`Account expired on ${user.expiry}. Please contact support.`);
+      return;
     }
+
+    // If we made it here, they are valid and not expired!
+    setIsAuthenticated(true);
+    setLoginError('');
   };
 
   if (!isAuthenticated) {

@@ -34,6 +34,25 @@ export default function Home() {
   const [progress, setProgress] = useState({ current: 0, total: 0 });
   const logsEndRef = useRef<HTMLDivElement>(null);
 
+  // Load session from localStorage on initial load
+  useEffect(() => {
+    const savedUser = localStorage.getItem('auth_user');
+    if (savedUser) {
+      try {
+        const user = JSON.parse(savedUser);
+        const today = new Date().toISOString().split('T')[0];
+        if (today <= user.expiry) {
+          setActiveUser(user);
+          setIsAuthenticated(true);
+        } else {
+          localStorage.removeItem('auth_user');
+        }
+      } catch (e) {
+        localStorage.removeItem('auth_user');
+      }
+    }
+  }, []);
+
   // Auto-scroll logs
   useEffect(() => {
     logsEndRef.current?.scrollIntoView({ behavior: 'smooth' });
@@ -187,6 +206,7 @@ export default function Home() {
     setIsAuthenticated(true);
     setActiveUser(user);
     setLoginError('');
+    localStorage.setItem('auth_user', JSON.stringify(user));
   };
 
   if (!isAuthenticated) {
@@ -245,6 +265,7 @@ export default function Home() {
   const handleLogout = () => {
     setIsAuthenticated(false);
     setActiveUser(null);
+    localStorage.removeItem('auth_user');
     setLoginUser('');
     setLoginPass('');
     setDomain('');

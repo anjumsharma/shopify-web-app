@@ -19,7 +19,8 @@ export default function Home() {
 
   // --- DASHBOARD STATE ---
   const [domain, setDomain] = useState('');
-  const [token, setToken] = useState('');
+  const [clientId, setClientId] = useState('');
+  const [clientSecret, setClientSecret] = useState('');
   const [delay, setDelay] = useState('0.6');
   
   const [csvFile, setCsvFile] = useState<File | null>(null);
@@ -65,7 +66,8 @@ export default function Home() {
 
   const startProcessing = async () => {
     if (!domain) return addLog('Please enter your Store Domain.', 'error');
-    if (!token) return addLog('Please enter your Admin API Token.', 'error');
+    if (!clientId) return addLog('Please enter your Client ID.', 'error');
+    if (!clientSecret) return addLog('Please enter your Client Secret.', 'error');
     if (csvData.length === 0) return addLog('Please upload a valid CSV file.', 'error');
 
     setIsProcessing(true);
@@ -73,6 +75,37 @@ export default function Home() {
     setLogs([]);
     setProgress({ current: 0, total: csvData.length });
     
+    addLog('Authenticating with Shopify...', 'info');
+
+    let activeToken = '';
+    const cleanDomain = domain.replace(/^https?:\/\//, '').replace(/\/$/, '');
+
+    try {
+      const authResponse = await fetch('/api/auth', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          domain: cleanDomain,
+          clientId,
+          clientSecret
+        })
+      });
+      const authData = await authResponse.json();
+      
+      if (!authData.success) {
+        addLog(`Authentication failed: ${authData.error}`, 'error');
+        setIsProcessing(false);
+        return;
+      }
+      
+      activeToken = authData.token;
+      addLog('Successfully authenticated!', 'success');
+    } catch (err: any) {
+      addLog(`Failed to reach authentication server: ${err.message}`, 'error');
+      setIsProcessing(false);
+      return;
+    }
+
     addLog('Starting bulk order processing...', 'info');
 
     const sleepTime = parseFloat(delay) * 1000 || 600;
@@ -93,8 +126,8 @@ export default function Home() {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({
-            domain: domain.replace(/^https?:\/\//, '').replace(/\/$/, ''), // clean domain
-            token,
+            domain: cleanDomain,
+            token: activeToken,
             rowData,
             rowNum
           })
@@ -212,7 +245,8 @@ export default function Home() {
     setLoginUser('');
     setLoginPass('');
     setDomain('');
-    setToken('');
+    setClientId('');
+    setClientSecret('');
     setCsvData([]);
     setCsvFile(null);
     setLogs([]);
@@ -264,13 +298,24 @@ export default function Home() {
                 />
               </div>
               <div>
-                <label className="block text-sm font-medium text-textMuted mb-1">Admin API Token (shpat_...)</label>
+                <label className="block text-sm font-medium text-textMuted mb-1">Client ID</label>
+                <input 
+                  type="text" 
+                  placeholder="Paste your Client ID here"
+                  className="w-full px-4 py-2 rounded-lg input-premium"
+                  value={clientId}
+                  onChange={(e) => setClientId(e.target.value)}
+                  disabled={isProcessing}
+                />
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-textMuted mb-1">Client Secret</label>
                 <input 
                   type="password" 
-                  placeholder="shpat_xxxxxxxxxxxxxxxxxxxxxxxx"
+                  placeholder="Paste your Client Secret here"
                   className="w-full px-4 py-2 rounded-lg input-premium"
-                  value={token}
-                  onChange={(e) => setToken(e.target.value)}
+                  value={clientSecret}
+                  onChange={(e) => setClientSecret(e.target.value)}
                   disabled={isProcessing}
                 />
               </div>
@@ -320,7 +365,7 @@ export default function Home() {
             {!isProcessing ? (
               <button 
                 onClick={startProcessing}
-                disabled={!csvData.length || !domain || !token}
+                disabled={!csvData.length || !domain || !clientId || !clientSecret}
                 className="flex-1 btn-primary py-3 px-4 rounded-xl font-bold flex items-center justify-center disabled:opacity-50"
               >
                 <Play className="w-5 h-5 mr-2" /> Start Processing
@@ -391,4 +436,3 @@ export default function Home() {
     </main>
   );
 }
-

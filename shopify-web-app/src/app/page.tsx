@@ -2,7 +2,7 @@
 
 import React, { useState, useRef, useEffect } from 'react';
 import Papa from 'papaparse';
-import { UploadCloud, CheckCircle2, AlertCircle, Play, Square, Settings2, FileSpreadsheet, Lock } from 'lucide-react';
+import { UploadCloud, CheckCircle2, AlertCircle, Play, Square, Settings2, FileSpreadsheet, Lock, LogOut } from 'lucide-react';
 
 interface LogEntry {
   row: number;
@@ -207,17 +207,38 @@ export default function Home() {
     );
   }
 
+  const handleLogout = () => {
+    setIsAuthenticated(false);
+    setLoginUser('');
+    setLoginPass('');
+    setDomain('');
+    setToken('');
+    setCsvData([]);
+    setCsvFile(null);
+    setLogs([]);
+  };
+
   return (
     <main className="max-w-5xl mx-auto p-6 md:p-12 space-y-8">
       {/* Header */}
-      <div className="flex items-center space-x-4 mb-10">
-        <div className="p-3 bg-primary/20 rounded-xl">
-          <UploadCloud className="w-8 h-8 text-primary" />
+      <div className="flex items-center justify-between mb-10">
+        <div className="flex items-center space-x-4">
+          <div className="p-3 bg-primary/20 rounded-xl">
+            <UploadCloud className="w-8 h-8 text-primary" />
+          </div>
+          <div>
+            <h1 className="text-3xl font-bold tracking-tight text-white">Shopify Bulk Invoicer</h1>
+            <p className="text-textMuted">Securely upload CSVs to create B2B orders</p>
+          </div>
         </div>
-        <div>
-          <h1 className="text-3xl font-bold tracking-tight text-white">Shopify Bulk Invoicer</h1>
-          <p className="text-textMuted">Securely upload CSVs to create B2B orders</p>
-        </div>
+        
+        <button 
+          onClick={handleLogout}
+          className="flex items-center px-4 py-2 bg-surface/50 hover:bg-surface border border-border rounded-lg text-textMuted hover:text-white transition-colors"
+        >
+          <LogOut className="w-4 h-4 mr-2" />
+          Logout
+        </button>
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-12 gap-8">

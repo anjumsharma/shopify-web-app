@@ -139,6 +139,23 @@ export default function Home() {
       const rowData = csvData[i];
       const rowNum = i + 2; // +2 because 0-index and header row
 
+      const email = (rowData['Email'] || '').trim();
+      const title = (rowData['Product Title'] || '').trim();
+      const price = (rowData['Price'] || '').toString().trim();
+      const quantity = (rowData['Quantity'] || '').toString().trim();
+
+      const missing = [];
+      if (!email) missing.push('Email');
+      if (!title) missing.push('Product Title');
+      if (!price) missing.push('Price');
+      if (!quantity) missing.push('Quantity');
+
+      if (missing.length > 0) {
+        addLog(`Error: Missing mandatory data (${missing.join(', ')}). Skipping row.`, 'error', rowNum);
+        setProgress(prev => ({ ...prev, current: i + 1 }));
+        continue;
+      }
+
       try {
         setProgress(prev => ({ ...prev, current: i + 1 }));
         
@@ -398,13 +415,21 @@ export default function Home() {
           {/* Actions */}
           <div className="flex gap-4">
             {!isProcessing ? (
-              <button 
-                onClick={startProcessing}
-                disabled={!csvData.length || !domain || !clientId || !clientSecret}
-                className="flex-1 btn-primary py-3 px-4 rounded-xl font-bold flex items-center justify-center disabled:opacity-50"
-              >
-                <Play className="w-5 h-5 mr-2" /> Start Processing
-              </button>
+              <>
+                <button 
+                  onClick={startProcessing}
+                  disabled={!csvData.length || !domain || !clientId || !clientSecret}
+                  className="flex-1 btn-primary py-3 px-4 rounded-xl font-bold flex items-center justify-center disabled:opacity-50"
+                >
+                  <Play className="w-5 h-5 mr-2" /> Start Processing
+                </button>
+                <button 
+                  onClick={() => { setCsvFile(null); setCsvData([]); setLogs([]); }}
+                  className="flex-1 bg-orange-500/20 text-orange-500 border border-orange-500/50 hover:bg-orange-500/30 py-3 px-4 rounded-xl font-bold flex items-center justify-center transition-colors"
+                >
+                  Clear Data & Logs
+                </button>
+              </>
             ) : (
               <button 
                 onClick={() => setIsCancelled(true)}

@@ -47,12 +47,13 @@ export async function POST(request: Request) {
     const isSubscribed = ['yes', 'true', '1'].includes(String(rawSubscribed).trim().toLowerCase());
 
     if (orderData.email) {
-      orderData.customer = {
-        first_name: firstName,
-        last_name: lastName,
+      const customerObj: any = {
         email: orderData.email,
         accepts_marketing: isSubscribed
       };
+      if (firstName) customerObj.first_name = firstName;
+      if (lastName) customerObj.last_name = lastName;
+      orderData.customer = customerObj;
     }
 
     // Optional Shipping Address
@@ -63,15 +64,18 @@ export async function POST(request: Request) {
     const country = rowData['Country'] ? String(rowData['Country']).trim() : '';
 
     if (address || city || zipCode) {
-      orderData.shipping_address = {
-        first_name: firstName,
-        last_name: lastName,
-        address1: address,
-        city: city,
-        province: province,
-        zip: zipCode,
-        country: country
-      };
+      const shippingAddress: any = {};
+      if (firstName) shippingAddress.first_name = firstName;
+      if (lastName) shippingAddress.last_name = lastName;
+      if (address) shippingAddress.address1 = address;
+      if (city) shippingAddress.city = city;
+      if (province) shippingAddress.province = province;
+      if (zipCode) shippingAddress.zip = zipCode;
+      if (country) shippingAddress.country = country;
+      
+      if (Object.keys(shippingAddress).length > 0) {
+        orderData.shipping_address = shippingAddress;
+      }
     }
 
     const response = await fetch(url, {
